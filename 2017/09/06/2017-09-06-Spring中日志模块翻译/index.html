@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"remove","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="本文主要针对spring 4.3.10.RELEASE版本中日志模块进行翻译。基本上看完之后就能明白为什么网上有那么多的日志配置方式，也可以弄明白哪一种才是使用日志的正确姿势。笔者英语水平一般般，翻译的不好的地方肯定是有的，如果你觉得哪里可以改进，欢迎你在github上提出意见。">
+<meta name="keywords" content="spring">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring中日志模块翻译">
+<meta property="og:url" content="https://xcj01010203.github.io/2017/09/06/2017-09-06-Spring中日志模块翻译/index.html">
+<meta property="og:site_name" content="老徐的博客">
+<meta property="og:description" content="本文主要针对spring 4.3.10.RELEASE版本中日志模块进行翻译。基本上看完之后就能明白为什么网上有那么多的日志配置方式，也可以弄明白哪一种才是使用日志的正确姿势。笔者英语水平一般般，翻译的不好的地方肯定是有的，如果你觉得哪里可以改进，欢迎你在github上提出意见。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-08-04T10:44:49.888Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring中日志模块翻译">
+<meta name="twitter:description" content="本文主要针对spring 4.3.10.RELEASE版本中日志模块进行翻译。基本上看完之后就能明白为什么网上有那么多的日志配置方式，也可以弄明白哪一种才是使用日志的正确姿势。笔者英语水平一般般，翻译的不好的地方肯定是有的，如果你觉得哪里可以改进，欢迎你在github上提出意见。">
+
+
+
+
+
+
+  <link rel="canonical" href="https://xcj01010203.github.io/2017/09/06/2017-09-06-Spring中日志模块翻译/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Spring中日志模块翻译 | 老徐的博客</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">老徐的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://xcj01010203.github.io/2017/09/06/2017-09-06-Spring中日志模块翻译/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="徐长建">
+      <meta itemprop="description" content="java SpringBoot Python">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="老徐的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Spring中日志模块翻译
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2017-09-06 15:20:35" itemprop="dateCreated datePublished" datetime="2017-09-06T15:20:35+08:00">2017-09-06</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2018-08-04 18:44:49" itemprop="dateModified" datetime="2018-08-04T18:44:49+08:00">2018-08-04</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">本文主要针对spring 4.3.10.RELEASE版本中日志模块进行翻译。基本上看完之后就能明白为什么网上有那么多的日志配置方式，也可以弄明白哪一种才是使用日志的正确姿势。笔者英语水平一般般，翻译的不好的地方肯定是有的，如果你觉得哪里可以改进，欢迎你在github上提出意见。</div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="spring-4-3-10-RELEASE-日志模块翻译"><a href="#spring-4-3-10-RELEASE-日志模块翻译" class="headerlink" title="spring 4.3.10.RELEASE 日志模块翻译"></a>spring 4.3.10.RELEASE 日志模块翻译</h1><p><a href="https://docs.spring.io/spring/docs/4.3.x/spring-framework-reference/html/" target="_blank" rel="noopener">Spring官方文档原文地址请点击此处</a></p>
+<p><a href="https://github.com/xcj01010203/spring-log" target="_blank" rel="noopener">GitHub反馈地址</a></p>
+<h2 id="Spring日志系统简介"><a href="#Spring日志系统简介" class="headerlink" title="Spring日志系统简介"></a>Spring日志系统简介</h2><p>对于Spring来说，日志是一个非常重要的依赖，原因有：</p>
+<ul>
+<li>它是唯一一个强制使用的外部依赖</li>
+<li>每个人都想从他们使用的工具中看到一些输出</li>
+<li>Spring与许多其他工具进行集成，这些工具也为日志依赖提供了一种选择</li>
+</ul>
+<p>　　应用开发者通常都有这样一个目标，在一个配置中心对整个应用有一个统一的日志配置。因为目前有太多的日志框架，所以这个实现起来并不容易。</p>
+<p>　　Spring强制使用的日志依赖是Jakarta Commons Logging API (JCL)，我们对JCL进行编译，并且我们也基于Spring框架制作了一个对类可见的JCK日志对象。对于用户来说，所有版本的Spring都是用相同的日志库非常重要，这样做的好处是使迁移变得很容易，因为即使是扩展自于Spring的应用程序，也可以保留向后兼容性。我们采用的方式是让Spring中的一个模块明确地依赖于commons-logging（JCL的一个标准实现），然后在编译的时候让其他所有模块依赖这个模块。例如，如果你使用的是Maven，你想知道系统是在哪里获取commons-logging的依赖项，答案就是它来自于Spring，或者更明确地说，来自于名叫spring-core的核心模块。</p>
+<p>　　使用commons-logging的好处在于，你不再需要其他东西来让你的应用正常工作。它有一个发现算法会在一些常见的类路径中寻找日志框架，然后挑一个它认为合适的去使用（或者在必要的时候你也可以自己指定）。如果没有找到合适的，你将会看到来自于JDK (java.util.logging or JUL for short)的日志。然而在大多数情况下，您会发现Spring应用程序会正常工作，并愉快地将其记录到控制台中。这才是最重要的。</p>
+<h2 id="使用Log4j-1-2-or-2-x"><a href="#使用Log4j-1-2-or-2-x" class="headerlink" title="使用Log4j 1.2 or 2.x"></a>使用Log4j 1.2 or 2.x</h2><blockquote>
+<p>Log4j 1.2 is EOL in the meantime. Also, Log4j 2.3 is the last Java 6 compatible release, with newer Log4j 2.x releases requiring Java 7+</p>
+</blockquote>
+<p>　　很多人为了配置和管理的目的使用Log4j作为日志框架。这样做特别高效和完善，事实上，这也是我们在构建Spring时在运行时使用的。Spring还提供了一些用来配置和初始化Log4j的工具，所以，在有些模块中，它使用了可选的编译时依赖Log4j。<br>为了使Log4j 1.2和默认的JCL依赖（common-logging）一起工作，你只需要在classpath中引入Log4j，然后在classpath根路径下提供一个配置文件（log4j.properties或log4j.xml）。下面是使用maven配置的例子：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;spring-core&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;4.3.10.RELEASE&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;log4j&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;log4j&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;1.2.17&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br></pre></td></tr></table></figure></p>
+<p>下面是一个简单的Log4j.properties配置文件，用于把日志打印到控制台：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">log4j.rootCategory=INFO, stdout</span><br><span class="line"></span><br><span class="line">log4j.appender.stdout=org.apache.log4j.ConsoleAppender</span><br><span class="line">log4j.appender.stdout.layout=org.apache.log4j.PatternLayout</span><br><span class="line">log4j.appender.stdout.layout.ConversionPattern=%d&#123;ABSOLUTE&#125; %5p %t %c&#123;2&#125;:%L - %m%n</span><br><span class="line"></span><br><span class="line">log4j.category.org.springframework.beans.factory=DEBUG</span><br></pre></td></tr></table></figure></p>
+<p>为了配合JCL使用Log4j 2.x，你只需要在classpath中引入Log4j，然后在classpath根路径下提供一个配置文件（log4j2.properties或log4j2.xml，或者<a href="https://logging.apache.org/log4j/2.x/manual/configuration.html" target="_blank" rel="noopener">其他文件格式</a>），对于使用maven的同学来说，需要的最少依赖如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;2.6.2&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;log4j-jcl&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;2.6.2&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br><span class="line">如果你还希望启用SLF4J来代表Log4j，例如：对于其他默认使用SLF4J的库来说以下依赖是必须的：</span><br><span class="line">&lt;dependencies&gt;</span><br><span class="line">  &lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;log4j-slf4j-impl&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;2.6.2&lt;/version&gt;</span><br><span class="line">  &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br></pre></td></tr></table></figure></p>
+<p>下面是一个简单的Log4j2.xml配置文件，用于日志打印到控制台的：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><br><span class="line">&lt;Configuration status=&quot;WARN&quot;&gt;</span><br><span class="line">  &lt;Appenders&gt;</span><br><span class="line">    &lt;Console name=&quot;Console&quot; target=&quot;SYSTEM_OUT&quot;&gt;</span><br><span class="line">      &lt;PatternLayout pattern=&quot;%d&#123;HH:mm:ss.SSS&#125; [%t] %-5level %logger&#123;36&#125; - %msg%n&quot;/&gt;</span><br><span class="line">    &lt;/Console&gt;</span><br><span class="line">  &lt;/Appenders&gt;</span><br><span class="line">  &lt;Loggers&gt;</span><br><span class="line">    &lt;Logger name=&quot;org.springframework.beans.factory&quot; level=&quot;DEBUG&quot;/&gt;</span><br><span class="line">    &lt;Root level=&quot;error&quot;&gt;</span><br><span class="line">      &lt;AppenderRef ref=&quot;Console&quot;/&gt;</span><br><span class="line">    &lt;/Root&gt;</span><br><span class="line">  &lt;/Loggers&gt;</span><br><span class="line">&lt;/Configuration&gt;</span><br></pre></td></tr></table></figure></p>
+<h2 id="这里插入4-2-3版本的文档中的一句话"><a href="#这里插入4-2-3版本的文档中的一句话" class="headerlink" title="这里插入4.2.3版本的文档中的一句话"></a>这里插入4.2.3版本的文档中的一句话</h2><blockquote>
+<p>If we could turn back the clock and start Spring now as a new project it would use a different logging dependency。</p>
+</blockquote>
+<p>翻译过来就是：如果可以时光倒流重新开始写spring，肯定会用一个不同的日志依赖（意指非commons-logging）。<br>由此引出下面的内容。</p>
+<h2 id="禁用Commons-Logging"><a href="#禁用Commons-Logging" class="headerlink" title="禁用Commons Logging"></a>禁用Commons Logging</h2><p>　　不幸的是，在标准commons-logging API中的运行时发现算法，虽然对用户来说很方便，但是也会引起一些问题。如果你想禁用JCL的标准查找程序，有两种方式帮助你关闭它：<br>1、从spring-core模块中排除commons-logging（因为这里是唯一明确依赖于commons-logging的模块）<br>2、借助特殊的commons-logging依赖，把commons-logging库替换为空（更多细节可以查看<a href="http://slf4j.org/faq.html#excludingJCL" target="_blank" rel="noopener">SLF4J FAQ</a>）<br>为了排除掉commons-logging，添加下面的代码到你的dependencyManagement 中：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;spring-core&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;4.3.10.RELEASE&lt;/version&gt;</span><br><span class="line">        &lt;exclusions&gt;</span><br><span class="line">            &lt;exclusion&gt;</span><br><span class="line">                &lt;groupId&gt;commons-logging&lt;/groupId&gt;</span><br><span class="line">                &lt;artifactId&gt;commons-logging&lt;/artifactId&gt;</span><br><span class="line">            &lt;/exclusion&gt;</span><br><span class="line">        &lt;/exclusions&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br></pre></td></tr></table></figure></p>
+<p>现在，应用程序会暂时崩溃一下，因为类路径中没有JCL API的实现，为了修复这个问题，必须提供一个新的日志框架。在下一节，我们会向你演示如何使用SLF4J提供一个可供替代的JCL实现。</p>
+<h2 id="配合Log4j或Logback使用SLF4J"><a href="#配合Log4j或Logback使用SLF4J" class="headerlink" title="配合Log4j或Logback使用SLF4J"></a>配合Log4j或Logback使用SLF4J</h2><p>　　The Simple Logging Facade for Java(SLF4J)是一个被经常配合Spring使用的其他库使用的一款流行的API。它通常配合Logback一起使用，后者是SLF4J API本地实现。<br>SLF4J提供了对许多通用日志框架的绑定，包括Log4j，同样，它也做了反向的绑定，从而在其他日志框架和自身之间建立了一个桥梁。所以，为了配合Spring使用SLF4J，你需要使用SLF4J-JCL桥梁替换commons-logging依赖。这样处理了之后，来自Spring内部的日志调用将被转换为针对SLF4J API中的日志调用，所以，如果你应用程序中其他包使用了SLF4J API，你就只需要在一个地方配置和管理日志了。</p>
+<p>　　一个常见的用法是把Spring桥接到SLF4J，然后提供一个从SLF4J到Log4j的绑定。你需要声明一些依赖（还要把已有的commons-logging排除掉）：JCL桥梁、SLF4J到Log4j的绑定和Log4j自身，如下面的Maven配置所示：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;spring-core&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;4.3.10.RELEASE&lt;/version&gt;</span><br><span class="line">        &lt;exclusions&gt;</span><br><span class="line">            &lt;exclusion&gt;</span><br><span class="line">                &lt;groupId&gt;commons-logging&lt;/groupId&gt;</span><br><span class="line">                &lt;artifactId&gt;commons-logging&lt;/artifactId&gt;</span><br><span class="line">            &lt;/exclusion&gt;</span><br><span class="line">        &lt;/exclusions&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.slf4j&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;jcl-over-slf4j&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;1.7.21&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.slf4j&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;1.7.21&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;log4j&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;log4j&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;1.2.17&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br></pre></td></tr></table></figure></p>
+<p>一个在SLF4J用户中更加常用的选择是直接绑定到Logback，这样会使用更少的步骤和更少的依赖。因为Logback直接继承于SLF4J，所以这种方式移除了额外的绑定步骤。你只需要两个库，分别是jcl-over-slf4j和logback<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.slf4j&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;jcl-over-slf4j&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;1.7.21&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;ch.qos.logback&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;logback-classic&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;1.1.7&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br></pre></td></tr></table></figure></p>
+<h2 id="使用JUL（java-util-logging）"><a href="#使用JUL（java-util-logging）" class="headerlink" title="使用JUL（java.util.logging）"></a>使用JUL（java.util.logging）</h2><p>　　通用日志默认委托给java.util.logging，这意味着类路径中没有Log4j。因此不需要建立一些特殊的依赖：仅需使用不带额外依赖的Spring，就能把日志输出到java.util.logging。无论是在一个独立的应用程序（在JDK层次使用自定义或默认的JUL设置）或应用服务器的日志系统（及其系统宽JUL设置）</p>
+<h2 id="WebSphere上的通用日志"><a href="#WebSphere上的通用日志" class="headerlink" title="WebSphere上的通用日志"></a>WebSphere上的通用日志</h2><p>　　Spring应用程序能够在自己实现了JCL的应用程序上运行，例如：IBM的WebSphere应用服务器。这本身并不会引起问题，但会导致需要理解的两种不同情况：</p>
+<ul>
+<li>在父级优先的类加载器代理模式下（WAS的默认情况），应用程序总是会选择服务器提供的通用日志版本，从而代理给子系统（这些子系统实际上是基于JUL）。一个应用程序提供的变种JCL，无论是标准的通用日志还是JCL-over-SLF4j桥梁，事实上连同任何本地包含的日志提供程序一起都会被忽略。</li>
+<li>在父级最后加载的的类加载器代理模式下（常规servlet容器中的默认值，但是可在WAS中显式地配置），应用程序提供的通用日志变体将会被选择，这将允许你在你的应用程序中设置一个本地包含的日志提供商，例如Log4j或Logback。为了防止没有本地日志提供商，正规的通用日志将会默认代理给JUL，跟“父级优先”的场景一样，都会有效地记录到WebSphere日志子系统中。</li>
+</ul>
+<p>总之，我们推荐把Spring应用程序部署在“父级优先”的场景中，因为它对于本地提供者和服务器的日志子系统是天然支持的。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spring/" rel="tag"># spring</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2013/07/14/2017-08-15-文件转pdf/" rel="next" title="文件转PDF">
+                <i class="fa fa-chevron-left"></i> 文件转PDF
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/09/27/2017-09-27-为spring-quartz动态设置参数/" rel="prev" title="为spring-quartz动态设置参数">
+                为spring-quartz动态设置参数 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">徐长建</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Mist</a> v6.3.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

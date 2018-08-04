@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"remove","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="本文主要介绍如何动态设置spring quartz执行参数。本文spring版本为4.2.2.RELEASE，quartz版本为2.2.1。先说业务，实现一个定时器，默认是每隔100ms执行一次（注意这里是毫秒），并且定时执行的方法需要支持传递参数，参数默认为100。可以通过页面设置定时器每隔100/200/300/400/500/600/700/800/900/1000毫秒执行一次，参数也需要支">
+<meta name="keywords" content="spring,quartz">
+<meta property="og:type" content="article">
+<meta property="og:title" content="为spring-quartz动态设置参数">
+<meta property="og:url" content="https://xcj01010203.github.io/2017/09/27/2017-09-27-为spring-quartz动态设置参数/index.html">
+<meta property="og:site_name" content="老徐的博客">
+<meta property="og:description" content="本文主要介绍如何动态设置spring quartz执行参数。本文spring版本为4.2.2.RELEASE，quartz版本为2.2.1。先说业务，实现一个定时器，默认是每隔100ms执行一次（注意这里是毫秒），并且定时执行的方法需要支持传递参数，参数默认为100。可以通过页面设置定时器每隔100/200/300/400/500/600/700/800/900/1000毫秒执行一次，参数也需要支">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-08-04T10:44:49.889Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="为spring-quartz动态设置参数">
+<meta name="twitter:description" content="本文主要介绍如何动态设置spring quartz执行参数。本文spring版本为4.2.2.RELEASE，quartz版本为2.2.1。先说业务，实现一个定时器，默认是每隔100ms执行一次（注意这里是毫秒），并且定时执行的方法需要支持传递参数，参数默认为100。可以通过页面设置定时器每隔100/200/300/400/500/600/700/800/900/1000毫秒执行一次，参数也需要支">
+
+
+
+
+
+
+  <link rel="canonical" href="https://xcj01010203.github.io/2017/09/27/2017-09-27-为spring-quartz动态设置参数/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>为spring-quartz动态设置参数 | 老徐的博客</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">老徐的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://xcj01010203.github.io/2017/09/27/2017-09-27-为spring-quartz动态设置参数/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="徐长建">
+      <meta itemprop="description" content="java SpringBoot Python">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="老徐的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">为spring-quartz动态设置参数
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2017-09-27 17:36:24" itemprop="dateCreated datePublished" datetime="2017-09-27T17:36:24+08:00">2017-09-27</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2018-08-04 18:44:49" itemprop="dateModified" datetime="2018-08-04T18:44:49+08:00">2018-08-04</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">本文主要介绍如何动态设置spring quartz执行参数。本文spring版本为4.2.2.RELEASE，quartz版本为2.2.1。先说业务，实现一个定时器，默认是每隔100ms执行一次（注意这里是毫秒），并且定时执行的方法需要支持传递参数，参数默认为100。可以通过页面设置定时器每隔100/200/300/400/500/600/700/800/900/1000毫秒执行一次，参数也需要支持自定义功能。</div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>maven中的quartz引用如下：<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.quartz-scheduler<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>quartz<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.2.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="总体思路"><a href="#总体思路" class="headerlink" title="总体思路"></a>总体思路</h3><p>这个业务有三个难点：</p>
+<ol>
+<li>间隔执行需要精确到毫秒</li>
+<li>定时任务需要支持传参</li>
+<li>定时任务需要支持动态设置执行时间和参数</li>
+</ol>
+<p>首先梳理一下quartz的使用思路，首先需要定义JobDetail，也就是你想要定时执行的任务。有了任务，需要把任务装到Trigger中，也就是触发器，在触发器中，你可以定义job执行的时间。最后一步，需要定义SchedulerFactoryBean（计划工厂），用于装载触发器。注意，工厂里可以装载多个触发器。</p>
+<h3 id="触发器"><a href="#触发器" class="headerlink" title="触发器"></a>触发器</h3><p>在触发器的选择上有两种方式，一种是CronTriggerFactoryBean，一种是SimpleTriggerFactoryBean，下面说一下各自的特点：</p>
+<ul>
+<li><h3 id="CronTriggerFactoryBean："><a href="#CronTriggerFactoryBean：" class="headerlink" title="CronTriggerFactoryBean："></a>CronTriggerFactoryBean：</h3></li>
+</ul>
+<h4 id="说明："><a href="#说明：" class="headerlink" title="说明："></a>说明：</h4><p>这是最常见的方式，随处可搜索到相关代码。此种方式是通过设置cronExpression执行表达式，定时执行任务，相关代码如下：<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"myTrigger"</span> <span class="attr">class</span>=<span class="string">"org.springframework.scheduling.quartz.CronTriggerFactoryBean"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"jobDetail"</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--自定义的执行任务--&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">ref</span> <span class="attr">bean</span>=<span class="string">"myJobDetail"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- cron表达式 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"cronExpression"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">value</span>&gt;</span>0/5 * * * * ?<span class="tag">&lt;/<span class="name">value</span>&gt;</span><span class="comment">&lt;!--每5秒执行一次--&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h4 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h4><p>表达式的方式优点就是对时间对指定非常灵活，可以指定“每隔星期三”，“每个月2号”等等类似的时间。</p>
+<h4 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h4><p>虽然说也可以通过表达式指定任务“每1秒执行一次”，但是，这个时间也仅仅限定在秒的级别，如果想设置“每100毫秒执行一次”，这种方式就没办法了。</p>
+<ul>
+<li><h3 id="SimpleTriggerFactoryBean"><a href="#SimpleTriggerFactoryBean" class="headerlink" title="SimpleTriggerFactoryBean"></a>SimpleTriggerFactoryBean</h3></li>
+</ul>
+<h4 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h4><p>这种方式网上传的少，因为这种方式的功能比较单一，仅仅可以设置任务延迟执行时间和重复执行时间间隔。<br>相关代码如下：<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"myTrigger"</span> <span class="attr">class</span>=<span class="string">"org.springframework.scheduling.quartz.SimpleTriggerFactoryBean"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"jobDetail"</span> <span class="attr">ref</span>=<span class="string">"myJobDetail"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"startDelay"</span> <span class="attr">value</span>=<span class="string">"0"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"repeatInterval"</span> <span class="attr">value</span>=<span class="string">"1000"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h4 id="优点-1"><a href="#优点-1" class="headerlink" title="优点"></a>优点</h4><p>任务重复执行时间间隔可以设定到毫秒级别。</p>
+<h4 id="缺点-1"><a href="#缺点-1" class="headerlink" title="缺点"></a>缺点</h4><p>时间功能设置较少。</p>
+<blockquote>
+<h4 id="比较了触发器，再结合业务，就可以猜到我使用的是SimpleTriggerFactoryBean"><a href="#比较了触发器，再结合业务，就可以猜到我使用的是SimpleTriggerFactoryBean" class="headerlink" title="比较了触发器，再结合业务，就可以猜到我使用的是SimpleTriggerFactoryBean"></a>比较了触发器，再结合业务，就可以猜到我使用的是SimpleTriggerFactoryBean</h4></blockquote>
+<hr>
+<h3 id="任务（JobDetail）"><a href="#任务（JobDetail）" class="headerlink" title="任务（JobDetail）"></a>任务（JobDetail）</h3><p>说完了触发器，咱再说jobDetail，在spring-quartz中，也有两种的任务定义：MethodInvokingJobDetailFactoryBean（不可传参）和JobDetailFactoryBean（可传参），下面分别做说明：</p>
+<ul>
+<li><h3 id="MethodInvokingJobDetailFactoryBean"><a href="#MethodInvokingJobDetailFactoryBean" class="headerlink" title="MethodInvokingJobDetailFactoryBean"></a>MethodInvokingJobDetailFactoryBean</h3></li>
+</ul>
+<h4 id="说明-1"><a href="#说明-1" class="headerlink" title="说明"></a>说明</h4><p>这依然是可以搜索到很多示例代码的使用方式，这种方式是执行bean中的执行方法，代码：<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"jobDetail"</span> <span class="attr">class</span>=<span class="string">"org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean"</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--false表示等上一个任务执行完后再开启新的任务--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"concurrent"</span> <span class="attr">value</span>=<span class="string">"false"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"targetObject"</span> <span class="attr">ref</span>=<span class="string">"locationController"</span> /&gt;</span><span class="comment">&lt;!--目标bean--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"targetMethod"</span> <span class="attr">value</span>=<span class="string">"test"</span> /&gt;</span><span class="comment">&lt;!--目标方法--&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h4 id="优点-2"><a href="#优点-2" class="headerlink" title="优点"></a>优点</h4><p>省事，代码比较少，适用于不需要传参的定时任务</p>
+<h4 id="缺点-2"><a href="#缺点-2" class="headerlink" title="缺点"></a>缺点</h4><p>不能传参</p>
+<ul>
+<li><h3 id="JobDetailFactoryBean"><a href="#JobDetailFactoryBean" class="headerlink" title="JobDetailFactoryBean"></a>JobDetailFactoryBean</h3></li>
+</ul>
+<h4 id="说明-2"><a href="#说明-2" class="headerlink" title="说明"></a>说明</h4><p>这种方式网上讨论的比较少，但是如果想对执行任务传递参数，也就只能使用这种方式。示例代码：<br><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--定义参数列表--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"params"</span> <span class="attr">class</span>=<span class="string">"org.quartz.JobDataMap"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">constructor-arg</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">map</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">entry</span> <span class="attr">key</span>=<span class="string">"maxAge"</span> <span class="attr">value</span>=<span class="string">"100"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">map</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">constructor-arg</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"jobDetail"</span> <span class="attr">class</span>=<span class="string">"org.springframework.scheduling.quartz.JobDetailFactoryBean"</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--定时任务--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"jobClass"</span> <span class="attr">value</span>=<span class="string">"com.cao.controller.JobController"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"jobDataMap"</span> <span class="attr">ref</span>=<span class="string">"params"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>可以看到，上面的配置，只见执行类，并没有指定执行的方法。这是因为可传参任务必须继承QuartzJobBean，重写protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException方法，调度任务最终执行的就是executeInternal方法。所以整个JobController就是一个执行任务。JobController代码如下：<br><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.cao.controller;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.cao.service.LocationService;</span><br><span class="line"><span class="keyword">import</span> com.cao.util.ApplicationContextUtil;</span><br><span class="line"><span class="keyword">import</span> org.quartz.JobDataMap;</span><br><span class="line"><span class="keyword">import</span> org.quartz.JobExecutionContext;</span><br><span class="line"><span class="keyword">import</span> org.quartz.JobExecutionException;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"><span class="keyword">import</span> org.springframework.scheduling.quartz.QuartzJobBean;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JobController</span> <span class="keyword">extends</span> <span class="title">QuartzJobBean</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Logger logger = LoggerFactory.getLogger(JobController.class);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">executeInternal</span><span class="params">(JobExecutionContext context)</span> <span class="keyword">throws</span> JobExecutionException </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();</span><br><span class="line">            <span class="keyword">int</span> maxAge = jobDataMap.getInt(<span class="string">"maxAge"</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//需要定时执行的业务逻辑</span></span><br><span class="line">            ...</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            logger.error(<span class="string">"定时获取坐标失败"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="优点-3"><a href="#优点-3" class="headerlink" title="优点"></a>优点</h4><p>可以传参</p>
+<h4 id="缺点-3"><a href="#缺点-3" class="headerlink" title="缺点"></a>缺点</h4><p>代码比较多</p>
+<blockquote>
+<h4 id="综合以上，可以看出，我采用的是JobDetailFactoryBean"><a href="#综合以上，可以看出，我采用的是JobDetailFactoryBean" class="headerlink" title="综合以上，可以看出，我采用的是JobDetailFactoryBean"></a>综合以上，可以看出，我采用的是JobDetailFactoryBean</h4></blockquote>
+<hr>
+<h3 id="动态设置参数"><a href="#动态设置参数" class="headerlink" title="动态设置参数"></a>动态设置参数</h3><p>这部分的实现思路是，通过SchedulerFactoryBean，获取到对应的触发器（Trigger），设置触发器时间。通过触发器，获取到对应的任务（JobDetail），设置任务的参数。最后再重新部署工厂中的这个任务。实现代码为：<br><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> SchedulerFactoryBean myScheduler;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 调整定时器设置</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> time</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> maxAge</span></span><br><span class="line"><span class="comment">* <span class="doctag">@throws</span> SchedulerException</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">adjustQuartzTime</span><span class="params">(<span class="keyword">int</span> time, <span class="keyword">int</span> maxAge)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">  Scheduler scheduler = <span class="keyword">this</span>.myScheduler.getScheduler();</span><br><span class="line"></span><br><span class="line">  <span class="comment">//获取触发器</span></span><br><span class="line">  TriggerKey key = TriggerKey.triggerKey(<span class="string">"myTrigger"</span>);</span><br><span class="line">  SimpleTrigger trigger = (SimpleTrigger) scheduler.getTrigger(key);</span><br><span class="line"></span><br><span class="line">  <span class="comment">//获取JobDetail，并设置job的参数</span></span><br><span class="line">  JobKey jobKey = trigger.getJobKey();</span><br><span class="line">  JobDetail jobDetail = scheduler.getJobDetail(jobKey);</span><br><span class="line">  jobDetail.getJobDataMap().put(<span class="string">"maxAge"</span>, maxAge);</span><br><span class="line"></span><br><span class="line">  <span class="comment">//触发器构建器</span></span><br><span class="line">  TriggerBuilder&lt;SimpleTrigger&gt; triggerBuilder = trigger.getTriggerBuilder();</span><br><span class="line"></span><br><span class="line">  <span class="comment">//设置执行时间间隔</span></span><br><span class="line">  SimpleScheduleBuilder simpleScheduleBuilder = SimpleScheduleBuilder.simpleSchedule();</span><br><span class="line">  simpleScheduleBuilder.withIntervalInMilliseconds(time);</span><br><span class="line">  simpleScheduleBuilder.repeatForever();</span><br><span class="line"></span><br><span class="line">  <span class="comment">//利用触发器构建器构建新的触发器</span></span><br><span class="line">  Trigger newTrigger = triggerBuilder.withSchedule(simpleScheduleBuilder).build();</span><br><span class="line"></span><br><span class="line">  <span class="comment">//这里本来应该使用scheduler.rescheduleJob方法来重新设置任务，但是这个方法不支持传入新的JobDetail，所以后来采用了先删除任务，再添加任务的形式。</span></span><br><span class="line">  scheduler.deleteJob(jobKey);</span><br><span class="line">  scheduler.scheduleJob(jobDetail, newTrigger);</span><br><span class="line"></span><br><span class="line">  <span class="comment">//把定时器参数入库，用于页面展示</span></span><br><span class="line">  QuartzModel quartzModel = <span class="keyword">this</span>.quartzService.queryRecord();</span><br><span class="line">  quartzModel.setMaxAge(maxAge);</span><br><span class="line">  quartzModel.setTime(time);</span><br><span class="line">  <span class="keyword">this</span>.quartzService.updateOne(quartzModel);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spring/" rel="tag"># spring</a>
+          
+            <a href="/tags/quartz/" rel="tag"># quartz</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/06/2017-09-06-Spring中日志模块翻译/" rel="next" title="Spring中日志模块翻译">
+                <i class="fa fa-chevron-left"></i> Spring中日志模块翻译
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">徐长建</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Mist</a> v6.3.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
